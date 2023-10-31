@@ -1,56 +1,3 @@
-/*
- * [The "BSD license"]
- *  Copyright (c) 2014 Terence Parr
- *  Copyright (c) 2014 Sam Harwell
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- *  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- *  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- *  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- *  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * A Java 8 grammar for ANTLR 4 derived from the Java Language Specification
- * chapter 19.
- *
- * NOTE: This grammar results in a generated parser that is much slower
- *       than the Java 7 grammar in the grammars-v4/java directory. This
- *     one is, however, extremely close to the spec.
- *
- * You can test with
- *
- *  $ antlr4 Java8.g4
- *  $ javac *.java
- *  $ grun Java8 compilationUnit *.java
- *
- * Or,
-~/antlr/code/grammars-v4/java8 $ java Test .
-/Users/parrt/antlr/code/grammars-v4/java8/./Java8BaseListener.java
-/Users/parrt/antlr/code/grammars-v4/java8/./Java8Lexer.java
-/Users/parrt/antlr/code/grammars-v4/java8/./Java8Listener.java
-/Users/parrt/antlr/code/grammars-v4/java8/./Java8Parser.java
-/Users/parrt/antlr/code/grammars-v4/java8/./Test.java
-Total lexer+parser time 30844ms.
- */
 parser grammar Java8Parser;
 
 options {
@@ -171,17 +118,33 @@ dimsZeroOrMore
     ;
 
 typeParameter
-	:	typeParameterModifier* Identifier typeBound?
-	;
+    :   typeParameterModifierZeroOrMore Identifier typeBoundZeroOrOne
+    ;
+
+typeParameterModifierZeroOrMore
+    :   typeParameterModifier typeParameterModifierZeroOrMore
+    |
+    ;
+
+typeBoundZeroOrOne
+    :   typeBound
+    |
+    ;
+
 
 typeParameterModifier
 	:	annotation
 	;
 
 typeBound
-	:	'extends' typeVariable
-	|	'extends' classOrInterfaceType additionalBound*
-	;
+    :   'extends' typeVariable
+    |   'extends' classOrInterfaceType additionalBoundZeroOrMore
+    ;
+
+additionalBoundZeroOrMore
+    :   additionalBound additionalBoundZeroOrMore
+    |
+    ;
 
 additionalBound
 	:	'&' interfaceType
@@ -205,8 +168,14 @@ typeArgument
 	;
 
 wildcard
-	:	annotationZeroOrMore '?' wildcardBounds?
-	;
+    :   annotationZeroOrMore '?' wildcardBoundsZeroOrOne
+    ;
+
+wildcardBoundsZeroOrOne
+    :   wildcardBounds
+    |
+    ;
+
 
 wildcardBounds
 	:	'extends' referenceType
@@ -251,8 +220,24 @@ ambiguousName
  */
 
 compilationUnit
-	:	packageDeclaration? importDeclaration* typeDeclaration* EOF
-	;
+    :   packageDeclarationZeroOrOne importDeclarationZeroOrMore typeDeclarationZeroOrMore EOF
+    ;
+
+packageDeclarationZeroOrOne
+    :   packageDeclaration
+    |
+    ;
+
+importDeclarationZeroOrMore
+    :   importDeclaration importDeclarationZeroOrMore
+    |
+    ;
+
+typeDeclarationZeroOrMore
+    :   typeDeclaration typeDeclarationZeroOrMore
+    |
+    ;
+
 
 packageDeclaration
 	:	packageModifier* 'package' packageName ';'
@@ -301,8 +286,28 @@ classDeclaration
 	;
 
 normalClassDeclaration
-	:	classModifier* 'class' Identifier typeParameters? superclass? superinterfaces? classBody
-	;
+    :   classModifierZeroOrMore 'class' Identifier typeParametersZeroOrOne superclassZeroOrOne superinterfacesZeroOrOne classBody
+    ;
+
+classModifierZeroOrMore
+    :   classModifier classModifierZeroOrMore
+    |
+    ;
+
+typeParametersZeroOrOne
+    :   typeParameters
+    |
+    ;
+
+superclassZeroOrOne
+    :   superclass
+    |
+    ;
+
+superinterfacesZeroOrOne
+    :   superinterfaces
+    |
+    ;
 
 classModifier
 	:	annotation
@@ -320,8 +325,14 @@ typeParameters
 	;
 
 typeParameterList
-	:	typeParameter (',' typeParameter)*
-	;
+    :   typeParameter typeParameterCommaSeparated
+    ;
+
+typeParameterCommaSeparated
+    :   ',' typeParameter typeParameterCommaSeparated
+    |
+    ;
+
 
 superclass
 	:	'extends' classType
@@ -361,8 +372,13 @@ classMemberDeclaration
 	;
 
 fieldDeclaration
-	:	fieldModifier* unannType variableDeclaratorList ';'
-	;
+    :   fieldModifierZeroOrMore unannType variableDeclaratorList ';'
+    ;
+
+fieldModifierZeroOrMore
+    :   fieldModifier fieldModifierZeroOrMore
+    |
+    ;
 
 fieldModifier
 	:	annotation
@@ -380,12 +396,24 @@ variableDeclaratorList
 	;
 
 variableDeclarator
-	:	variableDeclaratorId ('=' variableInitializer)?
-	;
+    :   variableDeclaratorId variableInitializerZeroOrOne
+    ;
+
+
+variableInitializerZeroOrOne
+    :   '=' variableInitializer
+    |
+    ;
 
 variableDeclaratorId
-	:	Identifier dims?
-	;
+    :   Identifier dimsZeroOrOne
+    ;
+
+dimsZeroOrOne
+    :   dims
+    |
+    ;
+
 
 variableInitializer
 	:	expression
@@ -453,8 +481,13 @@ unannArrayType
 	;
 
 methodDeclaration
-	:	methodModifier* methodHeader methodBody
-	;
+    :   methodModifierZeroOrMore methodHeader methodBody
+    ;
+
+methodModifierZeroOrMore
+    :   methodModifier methodModifierZeroOrMore
+    |
+    ;
 
 methodModifier
 	:	annotation
@@ -488,10 +521,7 @@ methodDeclarator
     :   Identifier '(' formalParameterListZeroOrOne ')' dimsZeroOrOne
     ;
 
-dimsZeroOrOne
-    :   dims
-    |
-    ;
+
 
 
 formalParameterListZeroOrOne
@@ -506,13 +536,30 @@ formalParameterList
 	;
 
 formalParameters
-	:	formalParameter (',' formalParameter)*
-	|	receiverParameter (',' formalParameter)*
-	;
+    :   formalParameter formalParameterListZeroOrMore
+    |   receiverParameter receiverParameterListZeroOrMore
+    ;
+
+formalParameterListZeroOrMore
+    :   ',' formalParameter formalParameterListZeroOrMore
+    |
+    ;
+
+receiverParameterListZeroOrMore
+    :   ',' formalParameter formalParameterListZeroOrMore
+    |
+    ;
+
 
 formalParameter
-	:	variableModifier* unannType variableDeclaratorId
-	;
+    :   variableModifierZeroOrMore unannType variableDeclaratorId
+    ;
+
+variableModifierZeroOrMore
+    :   variableModifier variableModifierZeroOrMore
+    |
+    ;
+
 
 variableModifier
 	:	annotation
@@ -520,13 +567,23 @@ variableModifier
 	;
 
 lastFormalParameter
-	:	variableModifier* unannType annotationZeroOrMore '...' variableDeclaratorId
-	|	formalParameter
-	;
+    :   lastFormalParameterWithEllipsis
+    |   formalParameter
+    ;
+
+lastFormalParameterWithEllipsis
+    :   variableModifierZeroOrMore unannType annotationZeroOrMore '...' variableDeclaratorId
+    ;
+
 
 receiverParameter
-	:	annotationZeroOrMore unannType (Identifier '.')? 'this'
-	;
+    :   annotationZeroOrMore unannType receiverIdentifier 'this'
+    ;
+
+receiverIdentifier
+    :   Identifier '.'
+    |   // Empty production for cases without an identifier
+    ;
 
 throws_
 	:	'throws' exceptionTypeList
@@ -555,9 +612,17 @@ staticInitializer
 	;
 
 constructorDeclaration
-	:	constructorModifier* constructorDeclarator throws_? constructorBody
-	;
+    :   constructorModifierZeroOrMore constructorDeclarator throwsQuestionMark constructorBody
+    ;
 
+constructorModifierZeroOrMore
+    :   constructorModifier constructorModifierZeroOrMore
+    |
+    ;
+throwsQuestionMark
+    :   throws_
+    |
+    ;
 constructorModifier
 	:	annotation
 	|	'public'
@@ -566,8 +631,10 @@ constructorModifier
 	;
 
 constructorDeclarator
-	:	typeParameters? simpleTypeName '(' formalParameterList? ')'
-	;
+    :   typeParametersZeroOrOne simpleTypeName '(' formalParameterListZeroOrOne ')'
+    ;
+
+
 
 simpleTypeName
 	:	Identifier
@@ -596,28 +663,63 @@ explicitConstructorInvocation
 	;
 
 enumDeclaration
-	:	classModifier* 'enum' Identifier superinterfaces? enumBody
-	;
+    :   classModifierZeroOrMore 'enum' Identifier superinterfacesZeroOrOne enumBody
+    ;
+
+
 
 enumBody
-	:	'{' enumConstantList? ','? enumBodyDeclarations? '}'
-	;
+    :   '{' enumConstantListZeroOrOne ','? enumBodyDeclarationsZeroOrOne '}'
+    ;
 
+enumConstantListZeroOrOne
+    :   enumConstantList
+    |
+    ;
+
+enumBodyDeclarationsZeroOrOne
+    :   enumBodyDeclarations
+    |
+    ;
 enumConstantList
-	:	enumConstant (',' enumConstant)*
-	;
+    :   enumConstant enumConstantZeroOrMore
+    ;
+
+enumConstantZeroOrMore
+    :   ',' enumConstant enumConstantZeroOrMore
+    |
+    ;
+
 
 enumConstant
-	:	enumConstantModifier* Identifier ('(' argumentListZeroOrOne ')')? classBody?
-	;
+    :   enumConstantModifierZeroOrMore Identifier enumConstantArgumentsZeroOrOne classBodyZeroOrOne
+    ;
 
+enumConstantModifierZeroOrMore
+    :   enumConstantModifier enumConstantModifierZeroOrMore
+    |
+    ;
+enumConstantArgumentsZeroOrOne
+    :   '(' argumentListZeroOrOne ')'
+    |
+    ;
+argumentListZeroOrOne
+    :   argumentList
+    |
+    ;
 enumConstantModifier
 	:	annotation
 	;
+	
+classBodyZeroOrOne
+    :   classBody
+    |
+    ;
 
 enumBodyDeclarations
-	:	';' classBodyDeclaration*
-	;
+    :   ';' classBodyDeclarationZeroOrMore
+    ;
+
 
 /*
  * Productions from §9 (Interfaces)
@@ -629,8 +731,19 @@ interfaceDeclaration
 	;
 
 normalInterfaceDeclaration
-	:	interfaceModifier* 'interface' Identifier typeParameters? extendsInterfaces? interfaceBody
-	;
+    :   interfaceModifierZeroOrMore 'interface' Identifier typeParametersZeroOrOne extendsInterfacesZeroOrOne interfaceBody
+    ;
+
+interfaceModifierZeroOrMore
+    :   interfaceModifier interfaceModifierZeroOrMore
+    |
+    ;
+
+
+extendsInterfacesZeroOrOne
+    :   extendsInterfaces
+    |
+    ;
 
 interfaceModifier
 	:	annotation
@@ -647,8 +760,13 @@ extendsInterfaces
 	;
 
 interfaceBody
-	:	'{' interfaceMemberDeclaration* '}'
-	;
+    :   '{' interfaceMemberDeclarationZeroOrMore '}'
+    ;
+
+interfaceMemberDeclarationZeroOrMore
+    :   interfaceMemberDeclaration interfaceMemberDeclarationZeroOrMore
+    |
+    ;
 
 interfaceMemberDeclaration
 	:	constantDeclaration
@@ -659,8 +777,13 @@ interfaceMemberDeclaration
 	;
 
 constantDeclaration
-	:	constantModifier* unannType variableDeclaratorList ';'
-	;
+    :   constantModifierZeroOrMore unannType variableDeclaratorList ';'
+    ;
+
+constantModifierZeroOrMore
+    :   constantModifier constantModifierZeroOrMore
+    |
+    ;
 
 constantModifier
 	:	annotation
@@ -670,10 +793,13 @@ constantModifier
 	;
 
 interfaceMethodDeclaration
-	:	interfaceMethodModifier* methodHeader methodBody
-	;
+    :   interfaceMethodModifierZeroOrMore methodHeader methodBody
+    ;
 
-interfaceMethodModifier
+interfaceMethodModifierZeroOrMore
+    :   interfaceMethodModifier interfaceMethodModifierZeroOrMore
+    |
+    ;interfaceMethodModifier
 	:	annotation
 	|	'public'
 	|	'abstract'
@@ -683,12 +809,17 @@ interfaceMethodModifier
 	;
 
 annotationTypeDeclaration
-	:	interfaceModifier* '@' 'interface' Identifier annotationTypeBody
-	;
+    :   interfaceModifierZeroOrMore '@' 'interface' Identifier annotationTypeBody
+    ;
 
 annotationTypeBody
-	:	'{' annotationTypeMemberDeclaration* '}'
-	;
+    :   '{' annotationTypeMemberDeclarationZeroOrMore '}'
+    ;
+
+annotationTypeMemberDeclarationZeroOrMore
+    :   annotationTypeMemberDeclaration annotationTypeMemberDeclarationZeroOrMore
+    |
+    ;
 
 annotationTypeMemberDeclaration
 	:	annotationTypeElementDeclaration
@@ -699,8 +830,18 @@ annotationTypeMemberDeclaration
 	;
 
 annotationTypeElementDeclaration
-	:	annotationTypeElementModifier* unannType Identifier '(' ')' dims? defaultValue? ';'
-	;
+    :   annotationTypeElementModifierZeroOrMore unannType Identifier '(' ')' dimsZeroOrOne defaultValueZeroOrOne ';'
+    ;
+
+annotationTypeElementModifierZeroOrMore
+    :   annotationTypeElementModifier annotationTypeElementModifierZeroOrMore
+    |
+    ;
+
+defaultValueZeroOrOne
+    :   defaultValue
+    |
+    ;
 
 annotationTypeElementModifier
 	:	annotation
@@ -719,12 +860,24 @@ annotation
 	;
 
 normalAnnotation
-	:	'@' typeName '(' elementValuePairList? ')'
-	;
+    :   '@' typeName '(' elementValuePairListZeroOrOne ')'
+    ;
+
+elementValuePairListZeroOrOne
+    :   elementValuePairList
+    |
+    ;
+
 
 elementValuePairList
-	:	elementValuePair (',' elementValuePair)*
-	;
+    :   elementValuePair elementValuePairZeroOrMore
+    ;
+
+elementValuePairZeroOrMore
+    :   ',' elementValuePair elementValuePairZeroOrMore
+    |
+    ;
+
 
 elementValuePair
 	:	Identifier '=' elementValue
@@ -737,12 +890,23 @@ elementValue
 	;
 
 elementValueArrayInitializer
-	:	'{' elementValueList? ','? '}'
-	;
+    :   '{' elementValueListZeroOrOne ','? '}'
+    ;
+
+elementValueListZeroOrOne
+    :   elementValueList
+    |
+    ;
 
 elementValueList
-	:	elementValue (',' elementValue)*
-	;
+    :   elementValue elementValueZeroOrMore
+    ;
+
+elementValueZeroOrMore
+    :   ',' elementValue elementValueZeroOrMore
+    |
+    ;
+
 
 markerAnnotation
 	:	'@' typeName
@@ -761,8 +925,13 @@ arrayInitializer
 	;
 
 variableInitializerList
-	:	variableInitializer (',' variableInitializer)*
-	;
+    :   variableInitializer variableInitializerZeroOrMore
+    ;
+
+variableInitializerZeroOrMore
+    :   ',' variableInitializer variableInitializerZeroOrMore
+    |
+    ;
 
 /*
  * Productions from §14 (Blocks and Statements)
@@ -795,10 +964,6 @@ localVariableDeclaration
     :   variableModifierZeroOrMore unannType variableDeclaratorList
     ;
 
-variableModifierZeroOrMore
-    :   variableModifier variableModifierZeroOrMore
-    |
-    ;
 
 
 statement
@@ -881,16 +1046,29 @@ switchStatement
 	;
 
 switchBlock
-	:	'{' switchBlockStatementGroup* switchLabel* '}'
-	;
+    :   '{' switchBlockStatementGroupZeroOrMore switchLabelZeroOrMore '}'
+    ;
+
+switchBlockStatementGroupZeroOrMore
+    :   switchBlockStatementGroup switchBlockStatementGroupZeroOrMore
+    |
+    ;
+    
+switchLabelZeroOrMore
+    :   switchLabel switchLabelZeroOrMore
+    |
+    ;
+
 
 switchBlockStatementGroup
 	:	switchLabels blockStatements
 	;
 
 switchLabels
-	:	switchLabel switchLabel*
-	;
+    :   switchLabel switchLabelZeroOrMore
+    ;
+
+
 
 switchLabel
 	:	'case' constantExpression ':'
@@ -925,12 +1103,27 @@ forStatementNoShortIf
 	;
 
 basicForStatement
-	:	'for' '(' forInit? ';' expression? ';' forUpdate? ')' statement
+    :   'for' '(' forInitZeroOrOne ';' expressionZeroOrOne ';' forUpdateZeroOrOne ')' statement
+    ;
+
+forInitZeroOrOne
+    :   forInit
+    |
+    ;
+
+forUpdateZeroOrOne
+    :   forUpdate
+    |
+    ;
+expressionZeroOrOne
+	:	expression
+	|
 	;
 
 basicForStatementNoShortIf
-	:	'for' '(' forInit? ';' expression? ';' forUpdate? ')' statementNoShortIf
-	;
+    :   'for' '(' forInitZeroOrOne ';' expressionZeroOrOne ';' forUpdateZeroOrOne ')' statementNoShortIf
+    ;
+
 
 forInit
 	:	statementExpressionList
@@ -942,27 +1135,37 @@ forUpdate
 	;
 
 statementExpressionList
-	:	statementExpression (',' statementExpression)*
-	;
+    :   statementExpression statementExpressionZeroOrMore
+    ;
+
+statementExpressionZeroOrMore
+    :   ',' statementExpression statementExpressionZeroOrMore
+    |
+    ;
+
 
 enhancedForStatement
-	:	'for' '(' variableModifier* unannType variableDeclaratorId ':' expression ')' statement
-	;
+    :   'for' '(' variableModifierZeroOrMore unannType variableDeclaratorId ':' expression ')' statement
+    ;
+
 
 enhancedForStatementNoShortIf
-	:	'for' '(' variableModifier* unannType variableDeclaratorId ':' expression ')' statementNoShortIf
-	;
+    :   'for' '(' variableModifierZeroOrMore unannType variableDeclaratorId ':' expression ')' statementNoShortIf
+    ;
+
 
 breakStatement
-	:	'break' Identifier? ';'
-	;
+    :   'break' Identifier? ';'
+    ;
+
+
 
 continueStatement
 	:	'continue' Identifier? ';'
 	;
 
 returnStatement
-	:	'return' expression? ';'
+	:	'return' expressionZeroOrOne ';'
 	;
 
 throwStatement
@@ -975,70 +1178,123 @@ synchronizedStatement
 
 tryStatement
 	:	'try' block catches
-	|	'try' block catches? finally_
+	|	'try' block catchesZeroOrOne finally_
 	|	tryWithResourcesStatement
 	;
 
-catches
-	:	catchClause catchClause*
+catchesZeroOrOne
+	:	catches
+	|
 	;
+
+catches
+	:	catchClause catchClauseZeroOrMore
+	;
+	
+catchClauseZeroOrMore
+	:catchClause
+	|
+	;
+	
 
 catchClause
 	:	'catch' '(' catchFormalParameter ')' block
 	;
 
 catchFormalParameter
-	:	variableModifier* catchType variableDeclaratorId
+	:	variableModifierZeroOrMore catchType variableDeclaratorId
 	;
 
+
 catchType
-	:	unannClassType ('|' classType)*
-	;
+    :   unannClassType ('|' classTypeZeroOrMore)
+    ;
+
+classTypeZeroOrMore
+    :   '|' classType classTypeZeroOrMore
+    |
+    ;
+
 
 finally_
 	:	'finally' block
 	;
 
 tryWithResourcesStatement
-	:	'try' resourceSpecification block catches? finally_?
-	;
+    :   'try' resourceSpecification block catchesZeroOrOne finallyZeroOrOne
+    ;
+
+
+finallyZeroOrOne
+    :   finally_
+    |
+    ;
 
 resourceSpecification
-	:	'(' resourceList ';'? ')'
+    :   '(' resourceList resourceOptionalSemicolonOneOrMore ')'
+    ;
+
+resourceOptionalSemicolon
+    :   ';'
+    |
+    ;
+   
+resourceOptionalSemicolonOneOrMore
+	:resourceOptionalSemicolon
 	;
 
 resourceList
-	:	resource (';' resource)*
-	;
+    :   resource resourceZeroOrMore
+    ;
+
+resourceZeroOrMore
+    :   ';' resource resourceZeroOrMore
+    |
+    ;
 
 resource
-	:	variableModifier* unannType variableDeclaratorId '=' expression
-	;
+    :   variableModifierZeroOrMore unannType variableDeclaratorId '=' expression
+    ;
+
+
 
 /*
  * Productions from §15 (Expressions)
  */
 
 primary
-	:	(	primaryNoNewArray_lfno_primary
-		|	arrayCreationExpression
-		)
-		primaryNoNewArray_lf_primary*
-	;
+    :   (primaryNoNewArray_lfno_primary | arrayCreationExpression) primaryNoNewArray_lf_primaryZeroOrMore
+    ;
+
+primaryNoNewArray_lf_primaryZeroOrMore
+    :   primaryNoNewArray_lf_primary primaryNoNewArray_lf_primaryZeroOrMore
+    |
+    ;
+
 
 primaryNoNewArray
-	:	literal
-	|	typeName ('[' ']')* '.' 'class'
-	|	'void' '.' 'class'
-	|	'this'
-	|	typeName '.' 'this'
-	|	'(' expression ')'
-	|	classInstanceCreationExpression
-	|	fieldAccess
-	|	arrayAccess
-	|	methodInvocation
-	|	methodReference
+    :   literal
+    |   typeName arrayDimsNoNewArrayZeroOrMore '.' 'class'
+    |   'void' '.' 'class'
+    |   'this'
+    |   typeName '.' 'this'
+    |   '(' expression ')'
+    |   classInstanceCreationExpression
+    |   fieldAccess
+    |   arrayAccess
+    |   methodInvocation
+    |   methodReference
+    ;
+
+arrayDimsNoNewArray
+    :   '[' ']'
+    ;
+    
+arrayDimsNoNewArrayZeroOrMore
+	:arrayDimsNoNewArray
+	|
 	;
+
 
 primaryNoNewArray_lf_arrayAccess
 	:
@@ -1046,7 +1302,7 @@ primaryNoNewArray_lf_arrayAccess
 
 primaryNoNewArray_lfno_arrayAccess
 	:	literal
-	|	typeName ('[' ']')* '.' 'class'
+	|	typeName arrayDimsNoNewArrayZeroOrMore '.' 'class'
 	|	'void' '.' 'class'
 	|	'this'
 	|	typeName '.' 'this'
@@ -1078,8 +1334,8 @@ primaryNoNewArray_lf_primary_lfno_arrayAccess_lf_primary
 
 primaryNoNewArray_lfno_primary
 	:	literal
-	|	typeName ('[' ']')* '.' 'class'
-	|	unannPrimitiveType ('[' ']')* '.' 'class'
+	|	typeName arrayDimsNoNewArrayZeroOrMore '.' 'class'
+	|	unannPrimitiveType arrayDimsNoNewArrayZeroOrMore '.' 'class'
 	|	'void' '.' 'class'
 	|	'this'
 	|	typeName '.' 'this'
@@ -1097,8 +1353,8 @@ primaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primary
 
 primaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primary
 	:	literal
-	|	typeName ('[' ']')* '.' 'class'
-	|	unannPrimitiveType ('[' ']')* '.' 'class'
+	|	typeName arrayDimsNoNewArrayZeroOrMore '.' 'class'
+	|	unannPrimitiveType arrayDimsNoNewArrayZeroOrMore '.' 'class'
 	|	'void' '.' 'class'
 	|	'this'
 	|	typeName '.' 'this'
@@ -1110,24 +1366,35 @@ primaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primary
 	;
 
 classInstanceCreationExpression
-	:	'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier ('.' annotationZeroOrMore Identifier)* typeArgumentsOrDiamond? '(' argumentListZeroOrOne ')' classBody?
-	|	expressionName '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier typeArgumentsOrDiamond? '(' argumentListZeroOrOne ')' classBody?
-	|	primary '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier typeArgumentsOrDiamond? '(' argumentListZeroOrOne ')' classBody?
-	;
+    :   'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier classInstanceCreationRest
+    |   expressionName '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier classInstanceCreationRest
+    |   primary '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier classInstanceCreationRest
+    ;
+
+classInstanceCreationRest
+    :   '.' annotationZeroOrMore Identifier typeArgumentsOrDiamondZeroOrOne '(' argumentListZeroOrOne ')' classBodyZeroOrOne
+    ;
+
+typeArgumentsOrDiamondZeroOrOne
+    :   typeArgumentsOrDiamond
+    |
+    ;
+typeArgumentsOrDiamond
+    :   typeArguments
+    |   '<' '>'
+    ;
 
 classInstanceCreationExpression_lf_primary
-	:	'.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier typeArgumentsOrDiamond? '(' argumentListZeroOrOne ')' classBody?
-	;
+    :   '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier typeArgumentsOrDiamondZeroOrOne '(' argumentListZeroOrOne ')' classBodyZeroOrOne
+    ;
 
 classInstanceCreationExpression_lfno_primary
-	:	'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier ('.' annotationZeroOrMore Identifier)* typeArgumentsOrDiamond? '(' argumentListZeroOrOne ')' classBody?
-	|	expressionName '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier typeArgumentsOrDiamond? '(' argumentListZeroOrOne ')' classBody?
-	;
-
-typeArgumentsOrDiamond
-	:	typeArguments
-	|	'<' '>'
-	;
+    :   'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier classInstanceCreationRest_lfno_primary
+    |   expressionName '.' 'new' typeArgumentsZeroOrOne annotationZeroOrMore Identifier classInstanceCreationRest_lfno_primary
+    ;
+classInstanceCreationRest_lfno_primary
+    :   ('.' annotationZeroOrMore Identifier typeArgumentsOrDiamondZeroOrOne '(' argumentListZeroOrOne ')' classBodyZeroOrOne)
+    ;
 
 fieldAccess
 	:	primary '.' Identifier
@@ -1145,25 +1412,39 @@ fieldAccess_lfno_primary
 	;
 
 arrayAccess
-	:	(	expressionName '[' expression ']'
-		|	primaryNoNewArray_lfno_arrayAccess '[' expression ']'
-		)
-		(	primaryNoNewArray_lf_arrayAccess '[' expression ']'
-		)*
+    :   arrayAccessPrimary arrayAccessRestZeroOrMore
+    ;
+
+arrayAccessPrimary
+    :   expressionName '[' expression ']'
+    |   primaryNoNewArray_lfno_arrayAccess '[' expression ']'
+    ;
+
+arrayAccessRest
+    :   primaryNoNewArray_lf_arrayAccess '[' expression ']'
+    ;
+
+arrayAccessRestZeroOrMore
+	:arrayAccessRest
+	|
 	;
 
 arrayAccess_lf_primary
 	:	primaryNoNewArray_lf_primary_lfno_arrayAccess_lf_primary '[' expression ']'
-		(	primaryNoNewArray_lf_primary_lf_arrayAccess_lf_primary '[' expression ']'
-		)*
+		primaryNoNewArray_lfZeroOrMore
 	;
+	
+primaryNoNewArray_lfZeroOrMore
+	:(	primaryNoNewArray_lf_primary_lf_arrayAccess_lf_primary '[' expression ']')
+	|
+	;
+	
 
 arrayAccess_lfno_primary
 	:	(	expressionName '[' expression ']'
 		|	primaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primary '[' expression ']'
 		)
-		(	primaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primary '[' expression ']'
-		)*
+		primaryNoNewArray_lfZeroOrMore
 	;
 
 methodInvocation
@@ -1188,13 +1469,13 @@ methodInvocation_lfno_primary
 	;
 
 argumentList
-	:	expression (',' expression)*
+	:	expression commaExoZeroOrMore
 	;
 
-argumentListZeroOrOne
-    :   argumentList
-    |
-    ;
+commaExoZeroOrMore
+	:(',' expression)
+	|
+	;
 
 methodReference
 	:	expressionName '::' typeArgumentsZeroOrOne Identifier
@@ -1220,16 +1501,21 @@ methodReference_lfno_primary
 	;
 
 arrayCreationExpression
-	:	'new' primitiveType dimExprs dims?
-	|	'new' classOrInterfaceType dimExprs dims?
+	:	'new' primitiveType dimExprs dimsZeroOrOne
+	|	'new' classOrInterfaceType dimExprs dimsZeroOrOne
 	|	'new' primitiveType dims arrayInitializer
 	|	'new' classOrInterfaceType dims arrayInitializer
 	;
 
 dimExprs
-	:	dimExpr dimExpr*
+	:	dimExpr dimExprZeroOrMore
 	;
 
+dimExprZeroOrMore
+	:dimExpr
+	|
+	;
+	
 dimExpr
 	:	annotationZeroOrMore '[' expression ']'
 	;
@@ -1249,7 +1535,7 @@ lambdaExpression
 
 lambdaParameters
 	:	Identifier
-	|	'(' formalParameterList? ')'
+	|	'(' formalParameterListZeroOrOne ')'
 	|	'(' inferredFormalParameterList ')'
 	;
 
@@ -1390,9 +1676,12 @@ postfixExpression
 	:	(	primary
 		|	expressionName
 		)
-		(	postIncrementExpression_lf_postfixExpression
-		|	postDecrementExpression_lf_postfixExpression
-		)*
+		postInfixExpZeroOrMore
+	;
+	
+postInfixExpZeroOrMore
+	:(	postIncrementExpression_lf_postfixExpression|postDecrementExpression_lf_postfixExpression)
+	|
 	;
 
 postIncrementExpression
@@ -1413,6 +1702,6 @@ postDecrementExpression_lf_postfixExpression
 
 castExpression
 	:	'(' primitiveType ')' unaryExpression
-	|	'(' referenceType additionalBound* ')' unaryExpressionNotPlusMinus
-	|	'(' referenceType additionalBound* ')' lambdaExpression
+	|	'(' referenceType additionalBoundZeroOrMore ')' unaryExpressionNotPlusMinus
+	|	'(' referenceType additionalBoundZeroOrMore ')' lambdaExpression
 	;
